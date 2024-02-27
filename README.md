@@ -1,6 +1,7 @@
-# SNUG: Self-Supervised Neural Dynamic Garments
+# GAPS: Geometry-Aware, Physics-Based, Self-Supervised Neural Garment Draping
 ![Teaser](assets/images/teaser1.png "Teaser image")
 
+This is the repo for [**GAPS: Geometry-Aware, Physics-Based, Self-Supervised Neural Garment Draping**](https://arxiv.org/pdf/2312.01490.pdf)
 
 ## Abstract
 
@@ -45,3 +46,15 @@ python run_sequences.py
 
 ## Configuration files
 ```train.ini``` and ```eval.ini``` contains training and prediction configuration, respectively.
+
+
+## Citation
+If you find our work useful, please cite it as:
+```bibtex
+@inproceedings{rc2024gaps,
+  title = {GAPS: Geometry-Aware, Physics-Based, Self-Supervised Neural Garment Draping},
+  author = {Chen, Ruochen and Parashar, Shaifali and Chen, Liming},
+  booktitle = {International Conference on 3D Vision (3DV)},
+  year = {2024}
+}
+```
