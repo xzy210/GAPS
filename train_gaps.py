@@ -10,7 +10,7 @@ from script.utils.global_vars import ROOT_DIR
 # import wandb      # uncomment if using wandb
 
 
-def make_model(config):
+def make_model(config, checkpoint_path=None):
     model = DeformationModel(config)
     print("Building model...")
     model.build(input_shape=[(None, None, 72), (None, None, 10), (None, None, 3), (None, None, 3), (None, None, 256)])
@@ -20,6 +20,27 @@ def make_model(config):
     print("Compiling model...")
     optimizer = tf.keras.optimizers.Adam(learning_rate=config.getfloat('lr'))
     model.compile(optimizer=optimizer)
+    
+    if checkpoint_path is not None:
+        print(f"Loading weights from {checkpoint_path}...")
+        # Check if it is a SavedModel directory and adjust path to variables
+        if os.path.isdir(checkpoint_path) and os.path.exists(os.path.join(checkpoint_path, 'variables')):
+            checkpoint_path = os.path.join(checkpoint_path, 'variables', 'variables')
+            print(f"Detected SavedModel directory, adjusting path to: {checkpoint_path}")
+            
+        try:
+            model.load_weights(checkpoint_path)
+            print("Weights loaded successfully!")
+        except Exception as e:
+            print(f"Error loading weights: {e}")
+            print("Attempting to load as SavedModel...")
+            try:
+                tf.keras.models.load_model(checkpoint_path)
+                print("Loaded as SavedModel (whole model) successfully!") 
+            except Exception as e2:
+                print(f"Failed to load as SavedModel: {e2}")
+                raise e
+    
     return model
 
 
@@ -40,17 +61,17 @@ class EpochCallback(tf.keras.callbacks.Callback):
         # wandb.log({**metrics, "Epoch": epoch})        # uncomment if using wandb
 
 
-def main(config):
+def main(config, checkpoint_path=None, initial_epoch=0):
     num_gpus = len(tf.config.list_physical_devices('GPU'))
 
     # Set Multi-gpu training
     if num_gpus > 1:
         mirrored_strategy = tf.distribute.MirroredStrategy()
         with mirrored_strategy.scope():
-            model = make_model(config)
+            model = make_model(config, checkpoint_path)
         batch_size = config.getint('batch_size_per_gpu') * num_gpus
     else:
-        model = make_model(config)
+        model = make_model(config, checkpoint_path)
         batch_size = config.getint('batch_size_per_gpu')
 
     print("Reading data...")
@@ -82,6 +103,7 @@ def main(config):
         d_train,
         validation_data=d_val,
         epochs=config.getint('num_epochs'),
+        initial_epoch=initial_epoch,  # 添加这一行
         steps_per_epoch=train_data.__len__() // batch_size,
         validation_steps=validation_data.__len__() // batch_size,
         callbacks=[
@@ -109,6 +131,8 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str, default='config/gaps_tshirt.ini')
+    parser.add_argument("--resume", type=str, default=None, help='Path to checkpoint to resume training from')
+    parser.add_argument("--initial_epoch", type=int, default=0, help='Initial epoch to start training from')
     opts = parser.parse_args()
     args_all = config_parser(os.path.join(ROOT_DIR, opts.config))
     config = args_all['DEFAULT']
@@ -133,4 +157,4 @@ if __name__ == '__main__':
         # for key, value in config.items():
         #     wandb.config[key] = value
 
-    main(config)
+    main(config, checkpoint_path=opts.resume, initial_epoch=opts.initial_epoch)

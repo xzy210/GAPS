@@ -37,9 +37,20 @@ We use sequences from AMASS to test our model. To download the sequences follow 
 
 ## Train
 
+从头开始训练
+
 ```sh
 python -u train_gaps.py --config config/train.ini
 ```
+
+## 从历史模型继续训练
+
+```
+python train_gaps.py --config config/train.ini --resume logs/expt_gaps/trained_model/200 --initial_epoch 200
+
+```
+
+这里的 --resume 参数指向之前保存的模型检查点（第200个epoch），--initial_epoch 设置为200表示从第10个epoch继续训练。
 
 ## Tensorbaord查看训练数据
 
