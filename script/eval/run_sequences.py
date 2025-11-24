@@ -24,7 +24,7 @@ if __name__ == "__main__":
     if not gpus:
         print("No GPU detected")
 
-    model_path = os.path.join(ROOT_DIR, args_eval['train_save_dir'], args_eval['eval_epoch'])
+    model_path = os.path.join(ROOT_DIR, args_eval['train_save_dir'], args_eval['eval_epoch'], 'variables', 'variables')
 
     validation_seq_list = args_eval['eval_motion'].replace(' ', '').split(',')
     shape_id_list = [s.strip() for s in args_eval['shape_id'].split(',')]

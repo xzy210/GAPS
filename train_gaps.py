@@ -91,7 +91,13 @@ def main(config):
                 period=config.getint('i_save')
             ),
             tf.keras.callbacks.LearningRateScheduler(lr_scheduler),
-            EpochCallback()
+            EpochCallback(),
+            tf.keras.callbacks.TensorBoard(
+                log_dir=os.path.join(log_dir, 'tensorboard_logs'),
+                histogram_freq=1,
+                write_graph=True,
+                update_freq='epoch'
+            )
         ],
     )
 
